@@ -1,0 +1,45 @@
+name: Build Flutter APK
+
+on:
+  push:
+    branches:
+      - main # או master, בהתאם לשם ה-Branch הראשי שלך
+  workflow_dispatch: # מאפשר להפעיל את הבנייה ידנית מתוך אתר GitHub
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. משיכת הקוד מהמאגר
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. התקנת Java (נדרש לבניית אנדרואיד)
+      - name: Set up Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      # 3. התקנת Flutter
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      # 4. התקנת התלויות של הפרויקט
+      - name: Install dependencies
+        run: flutter pub get
+
+      # 5. בניית קובץ ה-APK (שחרור - Release)
+      - name: Build APK
+        run: flutter build apk --release --no-tree-shake-icons
+
+      # 6. העלאת קובץ ה-APK כתוצר הורדה (Artifact)
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
