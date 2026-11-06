@@ -4,18 +4,18 @@ on:
   push:
     branches:
       - main # שנה ל-master אם זה שם הענף הראשי שלך
-  workflow_dispatch: # מאפשר הפעלה ידנית מתוך לשונית Actions ב-GitHub
+  workflow_dispatch: # מאפשר להפעיל את הבנייה ידנית מתוך לשונית Actions ב-GitHub
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest # הרצה על סביבת לינוקס שמיועדת לבניית אנדרואיד
 
     steps:
       # 1. משיכת הקוד מהמאגר
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. התקנת סביבת Java (חובה לבניית אנדרואיד)
+      # 2. התקנת Java (חובה לבניית אנדרואיד)
       - name: Set up Java JDK
         uses: actions/setup-java@v4
         with:
@@ -29,15 +29,15 @@ jobs:
           channel: 'stable'
           cache: true
 
-      # 4. התקנת התלויות והספריות של הפרויקט
+      # 4. התקנת התלויות (Packages)
       - name: Install dependencies
         run: flutter pub get
 
-      # 5. בניית קובץ ה-APK
+      # 5. בניית קובץ ה-APK (אנדרואיד)
       - name: Build APK
         run: flutter build apk --release --no-tree-shake-icons
 
-      # 6. העלאת קובץ ה-APK שנוצר כתוצר להורדה (Artifact)
+      # 6. העלאת קובץ ה-APK כתוצר להורדה
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
