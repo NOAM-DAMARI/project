@@ -16,17 +16,15 @@ jobs:
       run: |
         $ErrorActionPreference = "Stop"
         $zipFile = Get-ChildItem -Filter "*.zip" | Select-Object -First 1
-        if (-null -eq $zipFile) {
+        if ($null -eq $zipFile) {
             Write-Error "Error: No ZIP file found in the repository!"
             exit 1
         }
         Write-Host "Found ZIP file: $($zipFile.FullName)"
         
-        # יצירת תיקיית חילוץ נקייה
         if (Test-Path "extracted_project") { Remove-Item -Recurse -Force "extracted_project" }
         New-Item -ItemType Directory -Path "extracted_project" | Out-Null
         
-        # חילוץ עם .NET לעמידות מקסימלית
         Add-Type -AssemblyName System.IO.Compression.FileSystem
         [System.IO.Compression.ZipFile]::ExtractToDirectory($zipFile.FullName, "$PWD\extracted_project")
         Write-Host "Extraction completed successfully."
@@ -41,18 +39,19 @@ jobs:
       shell: powershell
       run: |
         $ErrorActionPreference = "Stop"
-        # בדיקה האם יש תיקייה פנימית אחת עוטפת
-        $items = Get-ChildItem -Path "extracted_project"
+        
+        # איתור מדויק של תיקיית הפרויקט (במקרה שה-ZIP פותח תיקייה עוטפת)
+        $targetDir = "$PWD\extracted_project"
+        $items = Get-ChildItem -Path $targetDir
         if ($items.Count -eq 1 -and $items[0].PSIsContainer) {
             $projectDir = $items[0].FullName
         } else {
-            $projectDir = "$PWD\extracted_project"
+            $projectDir = $targetDir
         }
         
         Write-Host "Entering project directory: $projectDir"
         Set-Location $projectDir
         
-        # בדיקה שיש קובץ pubspec.yaml
         if (-not (Test-Path "pubspec.yaml")) {
             Write-Error "Error: pubspec.yaml not found! Make sure the ZIP contains a Flutter project at its root."
             exit 1
@@ -66,4 +65,4 @@ jobs:
       with:
         name: windows-exe-output
         path: |
-          extracted_project/**/build/windows/x64/runner/Release/
+          **/build/windows/x64/runner/Release/**/*
