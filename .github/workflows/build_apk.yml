@@ -26,22 +26,17 @@ jobs:
           channel: 'stable'
           cache: true
 
-      # ---------------------------------------------------------
-      # חשוב: אם הפרויקט נמצא בתיקייה משנית, שנה את working-directory
-      # אם הפרויקט נמצא בתיקייה הראשית, מחק את שורות ה־working-directory
-      # ---------------------------------------------------------
-      
+      # הוסף את working-directory עם שם התיקייה שבה נמצא pubspec.yaml
       - name: Install dependencies
         run: flutter pub get
-        working-directory: . # שנה ל־שם התיקייה אם הפרויקט אינו בתיקיית השורש
+        working-directory: my_flutter_app # החלף בשם התיקייה שלך, או השאר '.' אם הוא בתיקייה הראשית
 
       - name: Build APK
         run: flutter build apk --release --no-tree-shake-icons
-        working-directory: . # שנה כאן באותו אופן
+        working-directory: my_flutter_app
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: release-apk
-          # ודא שהנתיב לתוצר ה־APK תואם למיקום התיקייה שלך
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: my_flutter_app/build/app/outputs/flutter-apk/app-release.apk
