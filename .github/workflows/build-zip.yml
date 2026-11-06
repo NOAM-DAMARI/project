@@ -14,15 +14,12 @@ jobs:
     - name: Find and Extract ZIP file
       shell: powershell
       run: |
-        # מחפש אוטומטית את קובץ ה-ZIP שהעלית בתיקייה
         $zipFile = Get-ChildItem -Filter *.zip | Select-Object -First 1
         if (-not $zipFile) {
             Write-Error "לא נמצא קובץ ZIP במאגר! אנא העלה קובץ ZIP."
             exit 1
         }
         Write-Host "מצאתי את קובץ ה-ZIP: $($zipFile.Name)"
-        
-        # חילוץ ה-ZIP לתיקיית פרוייקט
         Expand-Archive -Path $zipFile.FullName -DestinationPath "extracted_project" -Force
 
     - name: Setup Flutter SDK
@@ -30,12 +27,10 @@ jobs:
       with:
         flutter-version: '3.x'
         channel: 'stable'
-        windows: true
 
     - name: Build Flutter Windows EXE
       shell: powershell
       run: |
-        # מוצא את התיקייה שחולצה (גם אם יש תיקייה עוטפת בפנים)
         $projectDir = Get-ChildItem -Path "extracted_project" | Where-Object { $_.PSIsContainer } | Select-Object -First 1
         if ($null -eq $projectDir) { $projectDir = Get-Item "extracted_project" }
         
