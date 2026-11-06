@@ -14,20 +14,25 @@ jobs:
     - name: Find and Extract ZIP file
       shell: powershell
       run: |
-        $ErrorActionPreference = "Stop"
-        $zipFile = Get-ChildItem -Filter "*.zip" | Select-Object -First 1
-        if ($null -eq $zipFile) {
-            Write-Error "Error: No ZIP file found in the repository!"
+        try {
+            $ErrorActionPreference = "Stop"
+            $zipFile = Get-ChildItem -Filter "*.zip" | Select-Object -First 1
+            if ($null -eq $zipFile) {
+                Write-Error "Error: No ZIP file found in the repository!"
+                exit 1
+            }
+            Write-Host "Found ZIP file: $($zipFile.FullName)"
+            
+            if (Test-Path "extracted_project") { Remove-Item -Recurse -Force "extracted_project" }
+            New-Item -ItemType Directory -Path "extracted_project" | Out-Null
+            
+            Add-Type -AssemblyName System.IO.Compression.FileSystem
+            [System.IO.Compression.ZipFile]::ExtractToDirectory($zipFile.FullName, "$PWD\extracted_project")
+            Write-Host "Extraction completed successfully."
+        } catch {
+            Write-Error "ERROR IN EXTRACTION: $_"
             exit 1
         }
-        Write-Host "Found ZIP file: $($zipFile.FullName)"
-        
-        if (Test-Path "extracted_project") { Remove-Item -Recurse -Force "extracted_project" }
-        New-Item -ItemType Directory -Path "extracted_project" | Out-Null
-        
-        Add-Type -AssemblyName System.IO.Compression.FileSystem
-        [System.IO.Compression.ZipFile]::ExtractToDirectory($zipFile.FullName, "$PWD\extracted_project")
-        Write-Host "Extraction completed successfully."
 
     - name: Setup Flutter SDK
       uses: subosito/flutter-action@v2
@@ -38,31 +43,40 @@ jobs:
     - name: Build Flutter Windows EXE
       shell: powershell
       run: |
-        $ErrorActionPreference = "Stop"
-        
-        # איתור מדויק של תיקיית הפרויקט (במקרה שה-ZIP פותח תיקייה עוטפת)
-        $targetDir = "$PWD\extracted_project"
-        $items = Get-ChildItem -Path $targetDir
-        if ($items.Count -eq 1 -and $items[0].PSIsContainer) {
-            $projectDir = $items[0].FullName
-        } else {
-            $projectDir = $targetDir
-        }
-        
-        Write-Host "Entering project directory: $projectDir"
-        Set-Location $projectDir
-        
-        if (-not (Test-Path "pubspec.yaml")) {
-            Write-Error "Error: pubspec.yaml not found! Make sure the ZIP contains a Flutter project at its root."
+        try {
+            $ErrorActionPreference = "Stop"
+            $targetDir = "$PWD\extracted_project"
+            $items = Get-ChildItem -Path $targetDir
+            if ($items.Count -eq 1 -and $items[0].PSIsContainer) {
+                $projectDir = $items[0].FullName
+            } else {
+                $projectDir = $targetDir
+            }
+            
+            Write-Host "Entering project directory: $projectDir"
+            Set-Location $projectDir
+            
+            if (-not (Test-Path "pubspec.yaml")) {
+                Write-Error "Error: pubspec.yaml not found!"
+                exit 1
+            }
+            
+            Write-Host "Adding Windows desktop support to the project..."
+            flutter create . --platforms=windows
+            
+            Write-Host "Running flutter pub get..."
+            flutter pub get
+            
+            Write-Host "Building Flutter Windows EXE..."
+            flutter build windows --release
+        } catch {
+            Write-Error "ERROR IN BUILD: $_"
             exit 1
         }
-        
-        flutter pub get
-        flutter build windows --release
 
     - name: Upload Windows EXE Artifact
       uses: actions/upload-artifact@v4
       with:
         name: windows-exe-output
         path: |
-          **/build/windows/x64/runner/Release/**/*
+          extracted_project/**/build/windows/x64/runner/Release/**/*
