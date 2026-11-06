@@ -14,12 +14,12 @@ jobs:
     - name: Find and Extract ZIP file
       shell: powershell
       run: |
-        $zipFile = Get-ChildItem -Filter *.zip | Select-Object -First 1
+        $zipFile = Get-ChildItem -Filter "*.zip" | Select-Object -First 1
         if (-not $zipFile) {
-            Write-Error "לא נמצא קובץ ZIP במאגר! אנא העלה קובץ ZIP."
+            Write-Error "לא נמצא קובץ ZIP במאגר!"
             exit 1
         }
-        Write-Host "מצאתי את קובץ ה-ZIP: $($zipFile.Name)"
+        Write-Host "מצאתי את הקובץ: $($zipFile.Name)"
         Expand-Archive -Path $zipFile.FullName -DestinationPath "extracted_project" -Force
 
     - name: Setup Flutter SDK
@@ -31,11 +31,15 @@ jobs:
     - name: Build Flutter Windows EXE
       shell: powershell
       run: |
-        $projectDir = Get-ChildItem -Path "extracted_project" | Where-Object { $_.PSIsContainer } | Select-Object -First 1
-        if ($null -eq $projectDir) { $projectDir = Get-Item "extracted_project" }
+        $dirs = Get-ChildItem -Path "extracted_project" -Directory
+        if ($dirs.Count -eq 1) {
+            $projectDir = $dirs[0].FullName
+        } else {
+            $projectDir = "extracted_project"
+        }
         
-        Write-Host "נכנס לתיקיית הפרויקט: $($projectDir.FullName)"
-        Set-Location $projectDir.FullName
+        Write-Host "נכנס לתיקיית הפרויקט: $projectDir"
+        Set-Location $projectDir
         
         flutter pub get
         flutter build windows --release
@@ -44,5 +48,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: windows-exe-output
-        path: |
-          extracted_project/**/build/windows/x64/runner/Release/
+        path: extracted_project/**/build/windows/x64/runner/Release/
