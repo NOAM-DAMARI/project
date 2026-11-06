@@ -3,8 +3,8 @@ name: Build Flutter APK
 on:
   push:
     branches:
-      - main # או master, בהתאם לשם ה-Branch הראשי שלך
-  workflow_dispatch: # מאפשר להפעיל את הבנייה ידנית מתוך אתר GitHub
+      - main # שנה ל-master אם זה שם הענף הראשי שלך
+  workflow_dispatch: # מאפשר הפעלה ידנית מתוך לשונית Actions ב-GitHub
 
 jobs:
   build:
@@ -15,7 +15,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. התקנת Java (נדרש לבניית אנדרואיד)
+      # 2. התקנת סביבת Java (חובה לבניית אנדרואיד)
       - name: Set up Java JDK
         uses: actions/setup-java@v4
         with:
@@ -29,15 +29,15 @@ jobs:
           channel: 'stable'
           cache: true
 
-      # 4. התקנת התלויות של הפרויקט
+      # 4. התקנת התלויות והספריות של הפרויקט
       - name: Install dependencies
         run: flutter pub get
 
-      # 5. בניית קובץ ה-APK (שחרור - Release)
+      # 5. בניית קובץ ה-APK
       - name: Build APK
         run: flutter build apk --release --no-tree-shake-icons
 
-      # 6. העלאת קובץ ה-APK כתוצר הורדה (Artifact)
+      # 6. העלאת קובץ ה-APK שנוצר כתוצר להורדה (Artifact)
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
