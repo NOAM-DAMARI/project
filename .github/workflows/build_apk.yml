@@ -3,7 +3,7 @@ name: Build Flutter APK
 on:
   push:
     branches:
-      - main
+      - main # שנה ל-master אם זה שם הענף הראשי שלך
   workflow_dispatch:
 
 jobs:
@@ -26,17 +26,14 @@ jobs:
           channel: 'stable'
           cache: true
 
-      # הוסף את working-directory עם שם התיקייה שבה נמצא pubspec.yaml
       - name: Install dependencies
         run: flutter pub get
-        working-directory: my_flutter_app # החלף בשם התיקייה שלך, או השאר '.' אם הוא בתיקייה הראשית
 
       - name: Build APK
         run: flutter build apk --release --no-tree-shake-icons
-        working-directory: my_flutter_app
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: release-apk
-          path: my_flutter_app/build/app/outputs/flutter-apk/app-release.apk
+          path: build/app/outputs/flutter-apk/app-release.apk
