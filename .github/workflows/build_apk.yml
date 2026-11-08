@@ -3,7 +3,7 @@ name: Build Flutter APK
 on:
   push:
     branches:
-      - main # שנה ל-master אם זה שם הענף הראשי שלך
+      - main
   workflow_dispatch:
 
 jobs:
@@ -13,6 +13,18 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      # שלב חכם: מחפש אוטומטית בכל התיקיות איפה מסתתר קובץ ה-pubspec.yaml ונכנס אליו
+      - name: Find Project Root and Configure Directory
+        run: |
+          PUB_SPEC_PATH=$(find . -name "pubspec.yaml" -maxdepth 3 -not -path '*/.*' -not -path './build*')
+          if [ -z "$PUB_SPEC_PATH" ]; then
+            echo "Error: pubspec.yaml not found!"
+            exit 1
+          fi
+          PROJECT_DIR=$(dirname "$PUB_SPEC_PATH")
+          echo "Found project root at: $PROJECT_DIR"
+          echo "PROJECT_DIR=$PROJECT_DIR" >> $GITHUB_ENV
 
       - name: Set up Java JDK
         uses: actions/setup-java@v4
@@ -28,12 +40,14 @@ jobs:
 
       - name: Install dependencies
         run: flutter pub get
+        working-directory: ${{ env.PROJECT_DIR }}
 
       - name: Build APK
         run: flutter build apk --release --no-tree-shake-icons
+        working-directory: ${{ env.PROJECT_DIR }}
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: ${{ env.PROJECT_DIR }}/build/app/outputs/flutter-apk/app-release.apk
