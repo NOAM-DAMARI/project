@@ -30,7 +30,6 @@ jobs:
           }
           $projectDir = $pubSpec.DirectoryName
           Write-Host "Found project root at: $projectDir"
-          # שמירת הנתיב המלא
           echo "PROJECT_DIR=$projectDir" >> $env:GITHUB_ENV
 
       - name: Set up Flutter
@@ -51,10 +50,11 @@ jobs:
         run: flutter build windows --release
         working-directory: ${{ env.PROJECT_DIR }}
 
-      # שלב מעודכן להעלאת ה-Artifact עם נתיב מדויק ונקי
+      # שלב מעודכן עם v5 ונתיב גמיש שמוצא את הקבצים בוודאות
       - name: Upload Windows EXE Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: windows-exe
           path: |
+            ${{ env.PROJECT_DIR }}/build/windows/x64/runner/release/
             ${{ env.PROJECT_DIR }}/build/windows/x64/runner/Release/
