@@ -14,10 +14,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Extract ZIP package
+      - name: Extract ZIP
         run: |
           mkdir -p extracted_project
           unzip -o lesson-manager-L.zip -d extracted_project
+
+      - name: Find Project Root
+        run: |
+          PUB_SPEC_PATH=$(find extracted_project -name "pubspec.yaml" -not -path '*/.*' -not -path '*/build*')
+          PROJECT_DIR=$(dirname "$PUB_SPEC_PATH")
+          echo "PROJECT_DIR=$PROJECT_DIR" >> $GITHUB_ENV
 
       - name: Set up Java JDK
         uses: actions/setup-java@v4
@@ -31,19 +37,24 @@ jobs:
           channel: 'stable'
           cache: true
 
+      # הוספת תמיכת אנדרואיד באופן אוטומטי אם חסרה
+      - name: Create Android support if missing
+        run: flutter create . --platforms=android --org com.example.lessonmanager
+        working-directory: ${{ env.PROJECT_DIR }}
+
       - name: Install dependencies
         run: flutter pub get
-        working-directory: extracted_project
+        working-directory: ${{ env.PROJECT_DIR }}
 
       - name: Build APK
         run: flutter build apk --release --no-tree-shake-icons
-        working-directory: extracted_project
+        working-directory: ${{ env.PROJECT_DIR }}
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: release-apk
-          path: extracted_project/build/app/outputs/flutter-apk/app-release.apk
+          path: ${{ env.PROJECT_DIR }}/build/app/outputs/flutter-apk/app-release.apk
 
   build-exe:
     runs-on: windows-latest
@@ -52,11 +63,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Extract ZIP package
+      - name: Extract ZIP
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path extracted_project
           Expand-Archive -Path "lesson-manager-L.zip" -DestinationPath "extracted_project" -Force
+
+      - name: Find Project Root
+        shell: pwsh
+        run: |
+          $pubSpec = Get-ChildItem -Path "extracted_project" -Recurse -Filter "pubspec.yaml" | Where-Object { $_.FullName -notmatch '\\build\\' } | Select-Object -First 1
+          $projectDir = $pubSpec.DirectoryName
+          echo "PROJECT_DIR=$projectDir" >> $env:GITHUB_ENV
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -64,16 +82,21 @@ jobs:
           channel: 'stable'
           cache: true
 
+      # הוספת תמיכת Windows לפרויקט באופן אוטומטי
+      - name: Add Windows platform support
+        run: flutter create . --platforms=windows
+        working-directory: ${{ env.PROJECT_DIR }}
+
       - name: Install dependencies
         run: flutter pub get
-        working-directory: extracted_project
+        working-directory: ${{ env.PROJECT_DIR }}
 
       - name: Build Windows EXE
         run: flutter build windows --release
-        working-directory: extracted_project
+        working-directory: ${{ env.PROJECT_DIR }}
 
       - name: Upload Windows EXE Artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows-exe
-          path: extracted_project/build/windows/x64/runner/release/
+          path: ${{ env.PROJECT_DIR }}/build/windows/x64/runner/release/
