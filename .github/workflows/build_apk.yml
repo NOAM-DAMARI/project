@@ -1,0 +1,70 @@
+name: Build Flutter APK
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract ZIP
+        run: |
+          mkdir -p extracted_project
+          unzip -o lesson-manager-L.zip -d extracted_project
+
+      - name: Find Project Root
+        run: |
+          PUB_SPEC_PATH=$(find extracted_project -name "pubspec.yaml" -not -path '*/.*' -not -path '*/build*')
+          PROJECT_DIR=$(dirname "$PUB_SPEC_PATH")
+          echo "PROJECT_DIR=$PROJECT_DIR" >> $GITHUB_ENV
+
+      - name: Set up Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Create Android support if missing
+        run: flutter create . --platforms=android --org com.example.lessonmanager
+        working-directory: ${{ env.PROJECT_DIR }}
+
+      - name: Enable Build Features in build.gradle.kts
+        run: |
+          python3 -c "
+          path = 'android/app/build.gradle.kts'
+          if open(path).read():
+              with open(path, 'r') as f:
+                  content = f.read()
+              if 'buildFeatures' not in content:
+                  new_content = content.replace('android {', 'android {\n    buildFeatures {\n        buildConfig = true\n        resValue = true\n    }', 1)
+                  with open(path, 'w') as f:
+                      f.write(new_content)
+          "
+        working-directory: ${{ env.PROJECT_DIR }}
+
+      - name: Install dependencies
+        run: flutter pub get
+        working-directory: ${{ env.PROJECT_DIR }}
+
+      - name: Build APK
+        run: flutter build apk --release --no-tree-shake-icons --android-skip-build-dependency-validation
+        working-directory: ${{ env.PROJECT_DIR }}
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          path: ${{ env.PROJECT_DIR }}/build/app/outputs/flutter-apk/app-release.apk
