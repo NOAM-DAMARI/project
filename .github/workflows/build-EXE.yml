@@ -50,11 +50,9 @@ jobs:
         run: flutter build windows --release
         working-directory: ${{ env.PROJECT_DIR }}
 
-      # שלב מעודכן עם v5 ונתיב גמיש שמוצא את הקבצים בוודאות
+      # שלב מעודכן שמשתמש בנתיב ממוקד עם כוכבית לאיסוף כל קובצי הפלט
       - name: Upload Windows EXE Artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v4
         with:
           name: windows-exe
-          path: |
-            ${{ env.PROJECT_DIR }}/build/windows/x64/runner/release/
-            ${{ env.PROJECT_DIR }}/build/windows/x64/runner/Release/
+          path: ${{ env.PROJECT_DIR }}/build/windows/x64/runner/Release/*
