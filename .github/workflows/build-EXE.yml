@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Extract ZIP
         shell: pwsh
@@ -24,7 +24,13 @@ jobs:
         shell: pwsh
         run: |
           $pubSpec = Get-ChildItem -Path "extracted_project" -Recurse -Filter "pubspec.yaml" | Where-Object { $_.FullName -notmatch '\\build\\' } | Select-Object -First 1
+          if (-not $pubSpec) {
+              Write-Error "pubspec.yaml not found!"
+              exit 1
+          }
           $projectDir = $pubSpec.DirectoryName
+          Write-Host "Found project root at: $projectDir"
+          # שמירה בצורה נקייה של הנתיב המלא
           echo "PROJECT_DIR=$projectDir" >> $env:GITHUB_ENV
 
       - name: Set up Flutter
@@ -46,7 +52,9 @@ jobs:
         working-directory: ${{ env.PROJECT_DIR }}
 
       - name: Upload Windows EXE Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: windows-exe
-          path: ${{ env.PROJECT_DIR }}/build/windows/x64/runner/Release/
+          path: |
+            ${{ env.PROJECT_DIR }}/build/windows/x64/runner/Release/*.exe
+            ${{ env.PROJECT_DIR }}/build/windows/x64/runner/Release/
