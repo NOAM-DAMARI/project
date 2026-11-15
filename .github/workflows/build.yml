@@ -41,6 +41,20 @@ jobs:
         run: flutter create . --platforms=android --org com.example.lessonmanager
         working-directory: ${{ env.PROJECT_DIR }}
 
+      # הוספת התמיכה בערכי משאבים ו-BuildConfig עבור AGP מתקדם
+      - name: Enable Android Build Features in gradle.properties
+        run: |
+          GRADLE_PROP_PATH="android/gradle.properties"
+          if [ -f "$GRADLE_PROP_PATH" ]; then
+            echo "android.defaults.buildfeatures.resvalue=true" >> "$GRADLE_PROP_PATH"
+            echo "android.defaults.buildfeatures.buildconfig=true" >> "$GRADLE_PROP_PATH"
+          else
+            mkdir -p android
+            echo "android.defaults.buildfeatures.resvalue=true" > "$GRADLE_PROP_PATH"
+            echo "android.defaults.buildfeatures.buildconfig=true" >> "$GRADLE_PROP_PATH"
+          fi
+        working-directory: ${{ env.PROJECT_DIR }}
+
       - name: Install dependencies
         run: flutter pub get
         working-directory: ${{ env.PROJECT_DIR }}
