@@ -37,7 +37,6 @@ jobs:
           channel: 'stable'
           cache: true
 
-      # הוספת תמיכת אנדרואיד באופן אוטומטי אם חסרה
       - name: Create Android support if missing
         run: flutter create . --platforms=android --org com.example.lessonmanager
         working-directory: ${{ env.PROJECT_DIR }}
@@ -47,7 +46,7 @@ jobs:
         working-directory: ${{ env.PROJECT_DIR }}
 
       - name: Build APK
-        run: flutter build apk --release --no-tree-shake-icons
+        run: flutter build apk --release --no-tree-shake-icons --android-skip-build-dependency-validation
         working-directory: ${{ env.PROJECT_DIR }}
 
       - name: Upload APK Artifact
@@ -82,7 +81,6 @@ jobs:
           channel: 'stable'
           cache: true
 
-      # הוספת תמיכת Windows לפרויקט באופן אוטומטי
       - name: Add Windows platform support
         run: flutter create . --platforms=windows
         working-directory: ${{ env.PROJECT_DIR }}
@@ -99,4 +97,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-exe
-          path: ${{ env.PROJECT_DIR }}/build/windows/x64/runner/release/
+          path: ${{ env.PROJECT_DIR }}/build/windows/x64/runner/Release/
