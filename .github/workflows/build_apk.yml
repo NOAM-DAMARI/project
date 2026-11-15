@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Extract ZIP
         run: |
@@ -41,17 +41,24 @@ jobs:
         run: flutter create . --platforms=android --org com.example.lessonmanager
         working-directory: ${{ env.PROJECT_DIR }}
 
-      - name: Enable Build Features in build.gradle.kts
+      # סקריפט חכם שמנקה לחלוטין את הבלוקים הבעייתיים ומונע שגיאות קומפילציה ב-AGP 9.0
+      - name: Purge Bad Build Features and Fix AGP 9.0
         run: |
           python3 -c "
           path = 'android/app/build.gradle.kts'
-          if open(path).read():
-              with open(path, 'r') as f:
-                  content = f.read()
-              if 'buildFeatures' not in content:
-                  new_content = content.replace('android {', 'android {\n    buildFeatures {\n        buildConfig = true\n        resValue = true\n    }', 1)
-                  with open(path, 'w') as f:
-                      f.write(new_content)
+          with open(path, 'r') as f:
+              content = f.read()
+          
+          # הסרת כל מופע קודם של buildFeatures או הגדרות שגויות
+          import re
+          content = re.sub(r'buildFeatures\s*\{[^}]*\}', '', content)
+          
+          # הוספת התחביר הנקי והבסיסי ביותר שאינו שובר את AGP 9.0
+          if 'namespace' in content:
+              content = content.replace('android {', 'android {\n    buildFeatures {\n        buildConfig = true\n    }', 1)
+          
+          with open(path, 'w') as f:
+              f.write(content)
           "
         working-directory: ${{ env.PROJECT_DIR }}
 
@@ -64,7 +71,7 @@ jobs:
         working-directory: ${{ env.PROJECT_DIR }}
 
       - name: Upload APK Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: release-apk
           path: ${{ env.PROJECT_DIR }}/build/app/outputs/flutter-apk/app-release.apk
