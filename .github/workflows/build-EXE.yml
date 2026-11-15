@@ -50,9 +50,23 @@ jobs:
         run: flutter build windows --release
         working-directory: ${{ env.PROJECT_DIR }}
 
-      # שלב מעודכן שמשתמש בנתיב ממוקד עם כוכבית לאיסוף כל קובצי הפלט
+      # שלב חדש וחכם: איתור אוטומטי של קובץ ה-EXE בשטח ויצירת תיקיית איסוף נקייה
+      - name: Locate and Prepare EXE for Upload
+        shell: pwsh
+        run: |
+          $projDir = $env:PROJECT_DIR
+          $exeFile = Get-ChildItem -Path "$projDir\build\windows" -Recurse -Filter "*.exe" | Select-Object -First 1
+          if ($exeFile) {
+              Write-Host "Found EXE at: $($exeFile.FullName)"
+              New-Item -ItemType Directory -Force -Path "$projDir/final_output"
+              Copy-Item $exeFile.Directory.FullName -Destination "$projDir/final_output" -Recurse
+          } else {
+              Write-Error "EXE file not found anywhere under build/windows!"
+              exit 1
+          }
+
       - name: Upload Windows EXE Artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows-exe
-          path: ${{ env.PROJECT_DIR }}/build/windows/x64/runner/Release/*
+          path: ${{ env.PROJECT_DIR }}/final_output/
