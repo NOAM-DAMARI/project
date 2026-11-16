@@ -1,5 +1,5 @@
 name: Build Flutter Windows EXE
- 
+
 on:
   push:
     branches:
@@ -50,23 +50,9 @@ jobs:
         run: flutter build windows --release
         working-directory: ${{ env.PROJECT_DIR }}
 
-      # שלב חדש ופשוט: מוצא את קובץ ה-EXE ומעתיק את כל תיקיית ה-Release אל השורש הראשי
-      - name: Copy Release folder to Workspace Root
-        shell: pwsh
-        run: |
-          $projDir = $env:PROJECT_DIR
-          $releaseDir = Get-ChildItem -Path "$projDir\build\windows" -Recurse -Directory -Filter "Release" | Select-Object -First 1
-          if ($releaseDir) {
-              Write-Host "Found Release dir at: $($releaseDir.FullName)"
-              Copy-Item -Path "$($releaseDir.FullName)\*" -Destination "$env:GITHUB_WORKSPACE\windows_release_files" -Recurse -Force
-          } else {
-              Write-Error "Release directory not found under build/windows!"
-              exit 1
-          }
-
-      # העלאה ישירה מתיקיית השורש הברורה
+      # העלאה ישירה מתיקיית הפלט של פלאטר בווינדוס
       - name: Upload Windows EXE Artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows-exe
-          path: windows_release_files/
+          path: ${{ env.PROJECT_DIR }}/build/windows/x64/runner/Release/
