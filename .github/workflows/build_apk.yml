@@ -41,25 +41,18 @@ jobs:
         run: flutter create . --platforms=android --org com.example.lessonmanager
         working-directory: ${{ env.PROJECT_DIR }}
 
-      # סקריפט חכם שמנקה לחלוטין את הבלוקים הבעייתיים ומונע שגיאות קומפילציה ב-AGP 9.0
-      - name: Purge Bad Build Features and Fix AGP 9.0
+      # הפעלת תכונות ה-Build הנדרשות עבור Flavors ו-resValue בקובץ gradle.properties
+      - name: Enable Android Build Features in gradle.properties
         run: |
-          python3 -c "
-          path = 'android/app/build.gradle.kts'
-          with open(path, 'r') as f:
-              content = f.read()
-          
-          # הסרת כל מופע קודם של buildFeatures או הגדרות שגויות
-          import re
-          content = re.sub(r'buildFeatures\s*\{[^}]*\}', '', content)
-          
-          # הוספת התחביר הנקי והבסיסי ביותר שאינו שובר את AGP 9.0
-          if 'namespace' in content:
-              content = content.replace('android {', 'android {\n    buildFeatures {\n        buildConfig = true\n    }', 1)
-          
-          with open(path, 'w') as f:
-              f.write(content)
-          "
+          mkdir -p android
+          PROPS_PATH="android/gradle.properties"
+          if [ -f "$PROPS_PATH" ]; then
+            echo "android.defaults.buildfeatures.resvalue=true" >> "$PROPS_PATH"
+            echo "android.defaults.buildfeatures.buildconfig=true" >> "$PROPS_PATH"
+          else
+            echo "android.defaults.buildfeatures.resvalue=true" > "$PROPS_PATH"
+            echo "android.defaults.buildfeatures.buildconfig=true" >> "$PROPS_PATH"
+          fi
         working-directory: ${{ env.PROJECT_DIR }}
 
       - name: Install dependencies
@@ -71,7 +64,7 @@ jobs:
         working-directory: ${{ env.PROJECT_DIR }}
 
       - name: Upload APK Artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v4
         with:
           name: release-apk
           path: ${{ env.PROJECT_DIR }}/build/app/outputs/flutter-apk/app-release.apk
