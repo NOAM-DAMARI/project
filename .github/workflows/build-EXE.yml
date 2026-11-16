@@ -50,9 +50,9 @@ jobs:
         run: flutter build windows --release
         working-directory: ${{ env.PROJECT_DIR }}
 
-      # העלאה ישירה מתיקיית הפלט של פלאטר בווינדוס
+      # תיקון הנתיב כך שיתאים בדיוק למבנה של ווינדוס בלי התנגשויות סלאשים
       - name: Upload Windows EXE Artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows-exe
-          path: ${{ env.PROJECT_DIR }}/build/windows/x64/runner/Release/
+          path: ${{ env.PROJECT_DIR }}\build\windows\x64\runner\Release\
