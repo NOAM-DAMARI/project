@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.example.music_manager"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     buildFeatures {
