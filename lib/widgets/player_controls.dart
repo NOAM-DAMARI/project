@@ -1,7 +1,10 @@
 import '../services/player_service.dart';
+import '../services/app_state.dart';
+import '../models/lesson.dart';
 import '../utils/helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
+import 'point_dialog.dart';
 
 /// בקרי נגן מלאים: פס התקדמות, קדימה/אחורה, מהירות, טיימר שינה, ערבוב וחזרה.
 /// אם הקטע אינו זה שמתנגן כרגע – מוצג כפתור "השמעה" שאינו קוטע את מה שמתנגן עד הלחיצה.
@@ -70,6 +73,66 @@ class PlayerControls extends StatelessWidget {
                   ]),
                 ),
               _SeekBar(p),
+              // שורה אחת: מהירות, שינה, חזרה, ערבוב – ומימין עוצמת שמע
+              Directionality(
+                textDirection: TextDirection.ltr,
+                child: Row(children: [
+                  _SpeedButton(p),
+                  _SleepButton(),
+                  IconButton(
+                    tooltip: 'חזרה',
+                    visualDensity: VisualDensity.compact,
+                    isSelected: player.repeat != LoopSetting.off,
+                    icon: const Icon(Icons.repeat_rounded),
+                    selectedIcon: Icon(player.repeat == LoopSetting.one ? Icons.repeat_one_on_rounded : Icons.repeat_on_rounded,
+                        color: c.primary),
+                    onPressed: () {
+                      if (player.queue.length > 1) {
+                        player.cycleRepeat();
+                      } else {
+                        player.repeat = player.repeat == LoopSetting.one ? LoopSetting.off : LoopSetting.all;
+                        player.cycleRepeat();
+                      }
+                    },
+                  ),
+                  if (player.queue.length > 1)
+                    IconButton(
+                      tooltip: 'ערבוב',
+                      visualDensity: VisualDensity.compact,
+                      isSelected: player.shuffle,
+                      icon: const Icon(Icons.shuffle_rounded),
+                      selectedIcon: Icon(Icons.shuffle_on_rounded, color: c.primary),
+                      onPressed: player.toggleShuffle,
+                    ),
+                  Expanded(
+                    child: Row(children: [
+                      IconButton(
+                        tooltip: player.volume == 0 ? 'הפעלת שמע' : 'השתקה',
+                        visualDensity: VisualDensity.compact,
+                        icon: Icon(player.volume == 0 ? Icons.volume_off_rounded : Icons.volume_up_rounded, size: 20),
+                        onPressed: player.toggleMute,
+                      ),
+                      Expanded(
+                        child: SliderTheme(
+                          data: SliderTheme.of(context).copyWith(
+                            trackHeight: 2,
+                            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                            overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+                          ),
+                          child: Slider(
+                            value: player.volume.clamp(0.0, player.maxVolume).toDouble(),
+                            min: 0,
+                            max: player.maxVolume,
+                            label: '${(player.volume * 100).round()}%',
+                            divisions: (player.maxVolume * 20).round(),
+                            onChanged: player.setVolume,
+                          ),
+                        ),
+                      ),
+                    ]),
+                  ),
+                ]),
+              ),
               // בקרי מדיה נשארים משמאל לימין (כמו בכל נגן), צמודים למרכז
               Directionality(
                 textDirection: TextDirection.ltr,
@@ -110,64 +173,31 @@ class PlayerControls extends StatelessWidget {
                   _gap(IconButton(tooltip: 'קדימה 30 שניות', icon: const Icon(Icons.forward_30_rounded), onPressed: () => player.skip(30))),
                 ]),
               ),
-              // שורת צדדים: משמאל מהירות, שינה, חזרה (וערבוב); מימין עוצמת שמע קטנה
-              Directionality(
-                textDirection: TextDirection.ltr,
-                child: Row(children: [
-                  _SpeedButton(p),
-                  _SleepButton(),
-                  IconButton(
-                    tooltip: 'חזרה',
-                    visualDensity: VisualDensity.compact,
-                    isSelected: player.repeat != LoopSetting.off,
-                    icon: const Icon(Icons.repeat_rounded),
-                    selectedIcon: Icon(player.repeat == LoopSetting.one ? Icons.repeat_one_on_rounded : Icons.repeat_on_rounded,
-                        color: c.primary),
+              if (isLesson)
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(0, 64),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    icon: Icon(app.livePointLessonId == track.id && app.livePointIndex != null
+                        ? Icons.stop_circle_outlined
+                        : Icons.add_circle_outline_rounded),
+                    label: Text(app.livePointLessonId == track.id && app.livePointIndex != null
+                        ? 'עצור וסגור נקודה'
+                        : 'הוסף נקודה מהשנייה הנוכחית'),
                     onPressed: () {
-                      if (player.queue.length > 1) {
-                        player.cycleRepeat();
+                      final lesson = track.media as Lesson;
+                      if (app.livePointLessonId == lesson.id && app.livePointIndex != null) {
+                        stopLivePoint(lesson);
+                        snack(context, 'טווח הנקודה נסגר');
                       } else {
-                        player.repeat = player.repeat == LoopSetting.one ? LoopSetting.off : LoopSetting.all;
-                        player.cycleRepeat();
+                        showAddPointDialog(context, lesson);
                       }
                     },
                   ),
-                  if (player.queue.length > 1)
-                    IconButton(
-                      tooltip: 'ערבוב',
-                      visualDensity: VisualDensity.compact,
-                      isSelected: player.shuffle,
-                      icon: const Icon(Icons.shuffle_rounded),
-                      selectedIcon: Icon(Icons.shuffle_on_rounded, color: c.primary),
-                      onPressed: player.toggleShuffle,
-                    ),
-                  const Spacer(),
-                  IconButton(
-                    tooltip: player.volume == 0 ? 'הפעלת שמע' : 'השתקה',
-                    visualDensity: VisualDensity.compact,
-                    icon: Icon(player.volume == 0 ? Icons.volume_off_rounded : Icons.volume_up_rounded, size: 20),
-                    onPressed: player.toggleMute,
-                  ),
-                  SizedBox(
-                    width: 96,
-                    child: SliderTheme(
-                      data: SliderTheme.of(context).copyWith(
-                        trackHeight: 2,
-                        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-                        overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
-                      ),
-                      child: Slider(
-                        value: player.volume.clamp(0.0, player.maxVolume).toDouble(),
-                        min: 0,
-                        max: player.maxVolume,
-                        label: '${(player.volume * 100).round()}%',
-                        divisions: (player.maxVolume * 20).round(),
-                        onChanged: player.setVolume,
-                      ),
-                    ),
-                  ),
-                ]),
-              ),
+                ),
             ]),
           );
         },

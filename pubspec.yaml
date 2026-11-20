@@ -1,7 +1,7 @@
-name: lesson_player
-description: נגן שיעורים מינימלי – חיבור למאגר GitHub, רשימה והשמעה
+name: music_manager
+description: אפליקציית שירים ושיעורים
 publish_to: none
-version: 1.0.0
+version: 2.8.11
 
 environment:
   sdk: ">=3.10.0 <4.0.0"
@@ -12,14 +12,18 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   http: ^1.2.2
+  web: ^1.1.0
+  image: 4.10.2
   shared_preferences: ^2.2.3
+  file_picker: ^8.0.0
   just_audio: ^0.9.38
-  # מנוע שמע ל-Windows ול-Linux (just_audio לבדו לא תומך בהם)
-  just_audio_media_kit: ^2.0.0
-  media_kit_libs_windows_audio: ^1.0.9
-  media_kit_libs_linux: ^1.1.3
+  share_plus: 12.0.2
   path_provider: ^2.1.3
+  pdf: ">=3.11.0 <3.13.0"
+  printing: ^5.13.1
+  archive: ^4.0.0
   google_fonts: ^6.2.1
+  web_socket_channel: ^3.0.1
 
 dev_dependencies:
   flutter_test:
@@ -28,3 +32,10 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  # פונט עברי לייצוא PDF
+  assets:
+    - assets/fonts/NotoSansHebrew-Regular.ttf
+    - assets/fonts/NotoSansHebrew-Bold.ttf
+    # גופן משלים ל-PDF: ספרות, פיסוק ולטינית (הגופן העברי לא כולל אותם)
+    - assets/fonts/DejaVuSans.ttf
+    - assets/fonts/DejaVuSans-Bold.ttf

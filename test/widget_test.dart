@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lesson_player/main.dart';
+import 'package:music_manager/main.dart';
 
 void main() {
   testWidgets('App starts and shows the startup screen', (tester) async {

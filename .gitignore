@@ -34,3 +34,7 @@ next-env.d.ts
 **/.gradle/
 **/local.properties
 **/ephemeral/
+
+# FFmpeg build output (rebuild with third_party/ffmpeg/build.sh)
+third_party/ffmpeg/build/
+third_party/ffmpeg/bin/

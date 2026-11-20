@@ -1,4 +1,6 @@
-import '../screens/player_screen.dart';
+import '../screens/lesson_page.dart';
+import '../screens/song_player_page.dart';
+import '../services/app_state.dart';
 import '../services/player_service.dart';
 import '../utils/helpers.dart';
 import 'package:flutter/material.dart';
@@ -8,7 +10,15 @@ import 'package:just_audio/just_audio.dart';
 class MiniPlayer extends StatelessWidget {
   const MiniPlayer({super.key});
 
-  void _openFull(BuildContext context, Track t) => go(context, const PlayerScreen());
+  void _openFull(BuildContext context, Track t) {
+    if (t.kind == TrackKind.song) {
+      final s = app.songById(t.id);
+      if (s != null) go(context, SongPlayerPage(s));
+    } else {
+      final l = app.lessonById(t.id);
+      if (l != null) go(context, LessonPage(l));
+    }
+  }
 
   @override
   Widget build(BuildContext context) => ListenableBuilder(

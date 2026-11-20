@@ -1,18 +1,17 @@
-# נגן שיעורים (גרסה מינימלית)
+# music_manager
 
-אפליקציה קטנה על אותו בסיס קוד של Lesson Manager, עם שלושה דברים בלבד:
-1. **חיבור למאגר GitHub** – בעלים, מאגר, ענף ו-Token (Token חובה רק במאגר פרטי).
-2. **רשימה** – השיעורים והשירים מתוך `data/music_manager.json` במאגר, בשם בלבד.
-3. **השמעה** – אותו נגן של האפליקציה המלאה (קדימה/אחורה, מהירות, טיימר שינה, חזרה, ערבוב, עוצמה, המשך האזנה מאותו מקום).
+A new Flutter project.
 
-אין באפליקציה הזו: תמלול, זמרים, נקודות, עריכה, העלאה, ייבוא ZIP או ייצוא PDF.
-האפליקציה רק קוראת מהמאגר ולא כותבת אליו כלום.
+## Getting Started
 
-## הרצה
-```
-flutter pub get
-flutter run            # או: flutter build web / flutter build apk
-flutter test
-```
+This project is a starting point for a Flutter application.
 
-`web_build_ready/` – גרסת דפדפן בנויה ומוכנה להעלאה לאחסון כמו שהיא.
+A few resources to get you started if this is your first Flutter project:
+
+- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
+- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
+- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+
+For help getting started with Flutter development, view the
+[online documentation](https://docs.flutter.dev/), which offers tutorials,
+samples, guidance on mobile development, and a full API reference.

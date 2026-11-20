@@ -106,3 +106,11 @@ install(DIRECTORY "${PROJECT_BUILD_DIR}/${FLUTTER_ASSET_DIR_NAME}"
 install(FILES "${AOT_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}"
   CONFIGURATIONS Profile;Release
   COMPONENT Runtime)
+
+# FFmpeg לעיבוד שמע (חיתוך): מותקן ליד ה-EXE בתיקייה ffmpeg/.
+# אופציונלי: אם הבינארי לא נבנה, ההתקנה ממשיכה והאפליקציה תשתמש ב-PATH.
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/ffmpeg/bin/"
+  DESTINATION "${INSTALL_BUNDLE_LIB_DIR}/ffmpeg"
+  COMPONENT Runtime
+  OPTIONAL
+  FILES_MATCHING PATTERN "ffmpeg*.exe")

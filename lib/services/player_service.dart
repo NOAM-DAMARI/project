@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart' show MissingPluginException;
 import 'package:just_audio/just_audio.dart';
-import '../models/item.dart';
+import '../models/lesson.dart';
 import '../models/media.dart';
+import '../models/song.dart';
 import 'app_state.dart';
 import 'media_resolver.dart';
 
@@ -21,13 +21,20 @@ class Track {
   Track(this.id, this.kind, this.title, this.subtitle, this.media,
       {this.color});
 
-  /// פריט מהרשימה (שיעור או שיר) – רק שם וקובץ, בלי פרטים נוספים
-  factory Track.item(Item i) => Track(
-        i.id,
-        i.kind == ItemKind.lesson ? TrackKind.lesson : TrackKind.song,
-        i.title,
-        i.kind == ItemKind.lesson ? 'שיעור' : 'שיר',
-        i,
+  factory Track.song(Song s) {
+    final sg = app.singer(s.singerId);
+    return Track(s.id, TrackKind.song, s.title, sg?.name ?? '', s,
+        color: sg?.color);
+  }
+
+  factory Track.lesson(Lesson l) => Track(
+        l.id,
+        TrackKind.lesson,
+        l.title,
+        l.parasha.isEmpty
+            ? 'שיעור'
+            : '${l.parashaKind == 'event' ? 'אירוע' : 'פרשת'} ${l.parasha}',
+        l,
       );
 }
 
@@ -226,9 +233,8 @@ class PlayerService extends ChangeNotifier {
           await p.setUrl(t.media.remoteUrl!,
               headers: MediaResolver.streamHeaders(t.media.remoteUrl!));
         } catch (e) {
-          if (kIsWeb || token != _loadToken || e is MissingPluginException) {
-            rethrow;
-          }
+          // אין מנוע שמע בפלטפורמה (למשל Windows/Linux בלי תוסף): לא מורידים לחינם
+          if (kIsWeb || token != _loadToken || _isMissingEngine(e)) rethrow;
           await _downloadThenSet(t, token);
         }
       } else if (t.media.assetApi != null && !kIsWeb) {
@@ -460,10 +466,14 @@ class PlayerService extends ChangeNotifier {
     next(auto: true);
   }
 
+  bool _isMissingEngine(Object e) {
+    final s = e.toString();
+    return s.contains('MissingPluginException') || s.contains('No implementation found');
+  }
+
   String _friendly(Object e) {
     final s = e.toString();
-    if (e is MissingPluginException || s.contains('MissingPluginException'))
-      return 'מנוע השמע לא נטען במחשב הזה (חסר just_audio_media_kit)';
+    if (_isMissingEngine(e)) return 'מנוע השמע לא זמין בגרסה הזו של האפליקציה (Windows/Linux)';
     if (s.contains('SocketException') || s.contains('Failed host lookup'))
       return 'אין חיבור לאינטרנט';
     if (s.contains('(404)') || s.contains('404')) return 'הקובץ לא נמצא בענן';
