@@ -1,0 +1,26 @@
+name: lesson_player
+description: נגן שיעורים מינימלי – חיבור למאגר GitHub, רשימה והשמעה
+publish_to: none
+version: 1.0.0
+
+environment:
+  sdk: ">=3.10.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  http: ^1.2.2
+  shared_preferences: ^2.2.3
+  just_audio: ^0.9.38
+  path_provider: ^2.1.3
+  google_fonts: ^6.2.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
