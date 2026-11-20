@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show MissingPluginException;
 import 'package:just_audio/just_audio.dart';
 import '../models/item.dart';
 import '../models/media.dart';
@@ -224,8 +225,10 @@ class PlayerService extends ChangeNotifier {
         try {
           await p.setUrl(t.media.remoteUrl!,
               headers: MediaResolver.streamHeaders(t.media.remoteUrl!));
-        } catch (_) {
-          if (kIsWeb || token != _loadToken) rethrow;
+        } catch (e) {
+          if (kIsWeb || token != _loadToken || e is MissingPluginException) {
+            rethrow;
+          }
           await _downloadThenSet(t, token);
         }
       } else if (t.media.assetApi != null && !kIsWeb) {
@@ -459,6 +462,8 @@ class PlayerService extends ChangeNotifier {
 
   String _friendly(Object e) {
     final s = e.toString();
+    if (e is MissingPluginException || s.contains('MissingPluginException'))
+      return 'מנוע השמע לא נטען במחשב הזה (חסר just_audio_media_kit)';
     if (s.contains('SocketException') || s.contains('Failed host lookup'))
       return 'אין חיבור לאינטרנט';
     if (s.contains('(404)') || s.contains('404')) return 'הקובץ לא נמצא בענן';

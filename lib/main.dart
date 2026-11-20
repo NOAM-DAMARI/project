@@ -4,11 +4,13 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'screens/connect_screen.dart';
 import 'screens/home_screen.dart';
 import 'services/app_state.dart';
+import 'services/audio_init.dart';
 import 'services/storage.dart';
 import 'theme/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  initAudioBackend(); // חייב לפני שנוצר הנגן (Windows/Linux)
   runApp(const StartupGate());
 }
 
